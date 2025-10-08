@@ -8,6 +8,12 @@ export interface VoxelPoint {
 export interface VoxelEdge {
   v1: VoxelPoint,
   v2: VoxelPoint,
+  index: string,
+}
+
+export interface IsoPoint {
+  point: VoxelPoint,
+  edge: VoxelEdge,
 }
 
 export interface VoxelFace {

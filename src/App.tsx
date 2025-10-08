@@ -1,147 +1,50 @@
 import './App.css'
-import { OrbitControls } from '@react-three/drei'
-import { Voxel } from './components/voxel'
-import { Canvas } from '@react-three/fiber'
-import { Button } from './components/ui/button';
-import { useEffect, useState } from 'react';
-import { Circle } from 'lucide-react';
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import ProblemView from './views/ProblemView';
+
+import { Canvas } from '@react-three/fiber';
+import { MarchingCube } from './components/marching-cube';
+import { OrbitControls } from '@react-three/drei';
 
 function App() {
 
-  const datasets = [
-    [-1, 3, 2, 1, 3, 2, -2, 2],
-    [-2, -1, -1, 2, 3, 2, 2, 3],
-    [-2, -2, 2, 2, -3, 4, -2, 1],
-    [2, 2, -2, 1, 3, 2, 1, -2],
-    [2, 2, -1, 2, 3, 2, 2, -1],
-    [-2, 1, -2, 1, 1, -2, 1, -2],
-    [-2, 6, -2, 1, 6, -2, 1, -2],
-    [-1, 2, -2, 1, 4, -2, 1, -2],
-    [2, 2, -2, 1, 3, -4, 1, -2],
-  ];
-  const [currData, setCurrData] = useState(8);
-  const [currStep, setCurrStep] = useState(0);
-  const [c, setC] = useState(0);
-  const [index, setIndex] = useState("");
-
-  useEffect(() => {
-    buildIndex();
-  }, []);
-
-  const steps = [
-    "Consider a cell",
-    "Classify each vertex as inside or outside",
-    "Build an index",
-    "Get per-cell triangulation from lookup table",
-    "Interpolate edge locations",
-    "Compute gradients (optional)",
-    "Consider ambiguous cases",
-    "Go to next cell"
-  ];
-
-  function moveForward() {
-    if (currStep === steps.length - 1) {
-      setCurrStep(0);
-    } else {
-      setCurrStep(currStep + 1)
-    }
-  }
-
-  function buildIndex() {
-    let newIndex = "";
-    datasets[currData].forEach(v => {
-      if (v >= c) {
-        newIndex += "1";
-      } else {
-        newIndex += "0";
-      }
-    })
-    console.log(newIndex)
-    setIndex(newIndex);
-  }
+  const numCubes = 8;
+  const stepOffset = 10 / numCubes; // spacing in seconds between each cube’s start
+  const cubeOffsets = Array.from({ length: numCubes }, (_, i) => i * stepOffset);
 
   return (
     <>
+      <div className='flex flex-row justify-around'>
+        <Canvas
+          camera={{ position: [0, 5, 10], fov: 30 }}
+          style={{ width: "230px", height: "100px", background: "#ffffff" }}
+        >
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[5, 5, 5]} />
+          {cubeOffsets.map((offset, i) => (
+            <MarchingCube key={i} offset={offset} />
+          ))}
+          <OrbitControls enableZoom={false} />
+        </Canvas>
+      </div>
       <div>
         <h1>Marching Cubes</h1>
       </div>
-      <div className='flex flex-row'>
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select an example" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Exercises</SelectLabel>
-              <SelectItem value="apple">Apple</SelectItem>
-              <SelectItem value="banana">Banana</SelectItem>
-              <SelectItem value="blueberry">Blueberry</SelectItem>
-              <SelectItem value="grapes">Grapes</SelectItem>
-              <SelectItem value="pineapple">Pineapple</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      <div className='flex flex-row justify-around m-2'>
+        <p>Assume an Isovalue c = 0. Click through the following examples to see how an isosurface would be extracted using the Marching Cubes algorithm.</p>
       </div>
-      <div className='flex flex-row'>
-        <div className='flex flex-col justify-items-start justify-center w-100'>
-          <p><b>Steps:</b></p>
-          <ol className='list-decimal list-inside justify-items-start'>
-            {steps.map((step, index) => {
-              return <li style={{fontWeight: currStep === index ? 'bold' : 'normal' }}>{step}</li>
-            })}
-          </ol>
-          <div className='flex flex-row justify-center p-4'>
-            {currStep != steps.length - 1 && <Button variant={"outline"} onClick={moveForward}>
-              Next
-            </Button>}
-            {currStep === steps.length - 1 && <Button variant={"outline"} onClick={moveForward}>
-              Next Problem
-            </Button>}
-          </div>
-        </div>
-        <div className='w-100 h-100'>
-          <Canvas camera={{ position: [5, 5, 5], fov: 50 }}>
-            <ambientLight />
-            <directionalLight position={[2, 2, 2]} />
-            <Voxel data={datasets[currData]} index={index} c={c} step={currStep}/>
-            <OrbitControls />
-          </Canvas>
-        </div>
-        <div className='flex flex-col justify-items-start justify-center w-100'>
-          {currStep === 1 && <>
-            <div className='flex flex-row gap-1 items-center'>
-              <Circle fill='green' strokeWidth={0}></Circle>
-              <p>= Inside</p>
-            </div>
-            <div className='flex flex-row gap-1 items-center'>
-              <Circle fill='blue' strokeWidth={0}></Circle>
-              <p>= Outside</p>
-            </div>
-          </>}
-          {currStep === 2 && <>
-            <div className='flex flex-row gap-1 items-center'>
-              <Circle fill='green' strokeWidth={0}></Circle>
-              <p>= Inside = 1</p>
-            </div>
-            <div className='flex flex-row gap-1 items-center'>
-              <Circle fill='blue' strokeWidth={0}></Circle>
-              <p>= Outside = 0</p>
-            </div>
-            <p>{index}</p>
-          </>}
-        </div>
+      <ProblemView></ProblemView>
+      <div className='m-10'>
+          <p>Website built using <a href='https://vite.dev/guide/'>React Vite Typescript</a>, 
+            with <a href="https://ui.shadcn.com/">shadcn</a> components 
+            and <a href='https://threejs.org/'>Three.js </a>
+            and <a href='https://r3f.docs.pmnd.rs/getting-started/introduction'>React Three Fiber </a> 
+            for graphics rendering. Algorithm information pulled from Tino 
+             Weinkauf's <a href='https://www.csc.kth.se/~weinkauf/teaching/visualization/index.html?module=5'>
+             Geometry-based scalar field visualization</a> lecture 
+             and <a href='https://people.eecs.berkeley.edu/~jrs/meshpapers/NielsonHamann.pdf'>“The Asymptotic Decider”</a>, Nielson and Hamann, 
+             IEEE Vis 1991. AI disclosure: ChatGPT was used to help generate the animation for the marching cubes heading.</p>
       </div>
-      
     </>      
   )
 }
