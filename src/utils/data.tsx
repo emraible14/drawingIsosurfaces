@@ -89,6 +89,24 @@ export const faces: Array<VoxelFace> = [
   },
 ];
 
+export const defaultDatasets = [
+  [1, 1, 1, 1, 1, 1, 1, 1], // case 0
+  [-1, 1, 1, 1, 1, 1, 1, 1], // case 1
+  [-1, -1, 1, 1, 1, 1, 1, 1], // case 2
+  [-1, 1, -1, 1, 1, 1, 1, 1], // case 3
+  [-1, 1, 1, 1, 1, 1, -1, 1], // case 4
+  [1, -1, 1, 1, -1, -1, 1, 1], // case 5
+  [-1, -1, 1, 1, 1, 1, -1, 1], // case 6
+  [1, -1, 1, -1, 1, 1, -1, 1], // case 7
+  [-1, -1, 1, 1, -1, -1, 1, 1], // case 8
+  [-1, 1, 1, 1, -1, -1, 1, -1], // case 9
+  [-1, 1, 1, -1, 1, -1, -1, 1], // case 10
+  [-1, 1, 1, 1, -1, -1, -1, 1], // case 11
+  [1, -1, 1, -1, -1, -1, 1, 1], // case 12
+  [-1, 1, -1, 1, 1, -1, 1, -1], // case 13
+  [1, -1, 1, 1, -1, -1, 1, -1], // case 14
+];
+
 const defaultCases = [
   [], // case 0
   [
@@ -218,42 +236,6 @@ export const lookupTable: { [id: string]: Array<Array<Array<VoxelEdge>>> } = {
       [ edges[1], edges[7], edges[11] ], // e2, e8, e12
       [ edges[6], edges[7], edges[11] ], // e7, e8, e12
       
-    ],
-  ],
-  "10100101": [
-    defaultCases[13],
-    [
-      [ edges[0], edges[1], edges[9] ], // e1, e2, e10
-      [ edges[2], edges[3], edges[10] ], // e3, e4, e11
-      [ edges[4], edges[7], edges[8] ], // e5, e8, e9
-      [ edges[5], edges[6], edges[11] ], // e6, e7, e12
-    ],
-    [
-      [ edges[0], edges[3], edges[8] ], // e1, e4, e9
-      [ edges[4], edges[5], edges[9] ], // e5, e6, e10
-      [ edges[1], edges[2], edges[11] ], // e2, e3, e12
-      [ edges[6], edges[7], edges[10] ], // e7, e8, e11
-      [ edges[2], edges[10], edges[11] ], // e3, e11, e12
-      [ edges[6], edges[10], edges[11] ], // e7, e11, e12
-    ],
-    [
-      [ edges[0], edges[3], edges[8] ], // e1, e4, e9
-      [ edges[4], edges[5], edges[9] ], // e5, e6, e10
-      [ edges[1], edges[2], edges[11] ], // e2, e3, e12
-      [ edges[6], edges[7], edges[10] ], // e7, e8, e11
-      [ edges[2], edges[10], edges[11] ], // e3, e11, e12
-      [ edges[6], edges[10], edges[11] ], // e7, e11, e12
-      [ edges[1], edges[9], edges[11] ], // e2, e10, e12
-      [ edges[5], edges[9], edges[11] ], // e6, e10, e12
-    ],
-  ],
-  "00100101": [
-    [
-      [ edges[5], edges[6], edges[11] ], // e6, e7, e12
-      [ edges[2], edges[7], edges[10] ], // e3, e8, e11
-      [ edges[1], edges[2], edges[7] ], // e2, e3, e8
-      [ edges[1], edges[4], edges[7] ], // e2, e5, e8
-      [ edges[1], edges[4], edges[9] ], // e2, e5, e10
     ],
   ],
   "01100001": [

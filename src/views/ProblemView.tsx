@@ -22,8 +22,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { buildIndex } from '@/utils/hooks';
-import { lookupTable } from '@/utils/lookupTable';
+import { defaultDatasets, lookupTable } from '@/utils/data';
 
 function ProblemView() {
 
@@ -41,38 +40,20 @@ function ProblemView() {
     [2, -2, -2, 1, 3, 4, 1, -2],
   ];
 
-  const defaultDatasets = [
-    [1, 1, 1, 1, 1, 1, 1, 1], // case 0
-    [-1, 1, 1, 1, 1, 1, 1, 1], // case 1
-    [-1, -1, 1, 1, 1, 1, 1, 1], // case 2
-    [-1, 1, -1, 1, 1, 1, 1, 1], // case 3
-    [-1, 1, 1, 1, 1, 1, -1, 1], // case 4
-    [1, -1, 1, 1, -1, -1, 1, 1], // case 5
-    [-1, -1, 1, 1, 1, 1, -1, 1], // case 6
-    [1, -1, 1, -1, 1, 1, -1, 1], // case 7
-    [-1, -1, 1, 1, -1, -1, 1, 1], // case 8
-    [-1, 1, 1, 1, -1, -1, 1, -1], // case 9
-    [-1, 1, 1, -1, 1, -1, -1, 1], // case 10
-    [-1, 1, 1, 1, -1, -1, -1, 1], // case 11
-    [1, -1, 1, -1, -1, -1, 1, 1], // case 12
-    [-1, 1, -1, 1, 1, -1, 1, -1], // case 13
-    [1, -1, 1, 1, -1, -1, 1, -1], // case 14
-  ];
-
-  const cases = [4, 5, 3, 3, 12, 12, 6];
-  const ambiguousCases = [3, 6, 7, 10, 12, 13];
+  const cases = [4, 5, 3, 3, 12, 12, 6]; // hardcoded for now, ideally would determine this algorithmically
+  
+  const c = 0;
 
   const [currData, setCurrData] = useState(0);
   const [currStep, setCurrStep] = useState(0);
-  const c = 0;
   const [index, setIndex] = useState("");
   const [defaultIndex, setDefaultIndex] = useState("");
   
   useEffect(() => {
-    const newIndex = buildIndex(datasets[currData], c);
+    const newIndex = buildIndex(datasets[currData]);
     setIndex(newIndex);
 
-    const newDefault = buildIndex(defaultDatasets[cases[currData]], c);
+    const newDefault = buildIndex(defaultDatasets[cases[currData]]);
     setDefaultIndex(newDefault);
   }, [currData]);
 
@@ -100,6 +81,23 @@ function ProblemView() {
     } else {
       setCurrStep(currStep - 1)
     }
+  }
+
+  function buildIndex(data: Array<number>) {
+    let newIndex = "";
+    data.forEach(v => {
+      if (v < c) {
+        newIndex += "1";
+      } else {
+        newIndex += "0";
+      }
+    })
+    console.log(newIndex)
+    return newIndex;
+  }
+
+  function isAmbiguous(i: string) {
+    return lookupTable[i].length > 1;
   }
   
   return (
@@ -200,8 +198,8 @@ function ProblemView() {
           </div>}
           {currStep === 5 && <div className='flex flex-col justify-start gap-10 items-center'>
             <div>
-              {!ambiguousCases.includes(cases[currData]) && <p>No ambiguities for Case {cases[currData]}</p>}
-              {ambiguousCases.includes(cases[currData]) && (
+              {!isAmbiguous(index) && <p>No ambiguities for Case {cases[currData]}</p>}
+              {isAmbiguous(index) && (
                 <div className='flex flex-col items-center'>
                   <p className='text-s'>Consider {lookupTable[index].length} ambiguous cases.</p>
                   <p className='text-xs'>Ambiguities are resolved by looking at each ambiguous face, calculating the saddle point, then determining

@@ -32,9 +32,3 @@ export interface IsoTriangle {
   p2: VoxelPoint,
   p3: VoxelPoint,
 }
-
-export interface LookupTriangle {
-  e1: VoxelEdge,
-  e2: VoxelEdge,
-  e3: VoxelEdge,
-}

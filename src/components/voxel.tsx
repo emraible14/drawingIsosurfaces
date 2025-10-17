@@ -1,7 +1,7 @@
 
 import { Edges, Html } from "@react-three/drei";
-import type { IsoPoint, VoxelEdge, VoxelPoint } from "../utils/types";
-import { faces, lookupTable, vertices } from "../utils/lookupTable";
+import type { IsoPoint, VoxelEdge, VoxelFace, VoxelPoint } from "../utils/types";
+import { faces, lookupTable, vertices } from "../utils/data";
 import * as THREE from "three";
 import { useEffect, useState } from "react";
 
@@ -33,6 +33,19 @@ export function Voxel(props: VoxelProps) {
     return props.data[index] <= props.c ? "green" : "blue"
   }
 
+  // some helpers 
+  function faceContainsPoint(face: VoxelFace, p: IsoPoint) {
+    return (p.edge.index === face.e1.index || 
+            p.edge.index === face.e2.index || 
+            p.edge.index === face.e3.index || 
+            p.edge.index === face.e4.index);
+  }
+
+  function equalVoxelPoint(p1: VoxelPoint, p2: VoxelPoint) {
+    return p1.x === p2.x && p1.y === p2.y && p1.z === p2.z
+  }
+
+  // go through lookup table options to calculate all isopoints and all possible triangulations
   function getPoints() {
     const triangleEdgeOptions = lookupTable[props.index];
 
@@ -41,9 +54,6 @@ export function Voxel(props: VoxelProps) {
     if (triangleEdgeOptions && triangleEdgeOptions.length > 0) {
       const points: Array<IsoPoint> = [];
       
-      // go through each triangle for default case (case 0)
-      // const triangleEdges = triangleEdgeOptions[0];
-
       // go through each option available in lookup table
       triangleEdgeOptions.forEach((triangleEdges) => {
         const currIsoTriangles: Array<Array<VoxelPoint>> = [];
@@ -52,8 +62,8 @@ export function Voxel(props: VoxelProps) {
           // go through each edge and interpolate to find point
           const resultTri: Array<VoxelPoint> = [];
           tri.forEach((edge: VoxelEdge) => {
-            const val1 = props.data[vertices.findIndex((v) => v === edge.v1)]
-            const val2 = props.data[vertices.findIndex((v) => v === edge.v2)]
+            const val1 = props.data[vertices.findIndex((v) => equalVoxelPoint(v, edge.v1))]
+            const val2 = props.data[vertices.findIndex((v) => equalVoxelPoint(v, edge.v2))]
             const t = (props.c - val1) / (val2 - val1);
             const newPoint = {
               point: { 
@@ -64,8 +74,7 @@ export function Voxel(props: VoxelProps) {
               edge: edge,
             }
             // add isoPoint if we haven't already
-            const foundPoint = points.find((p) => p.point.x === newPoint.point.x && p.point.y === newPoint.point.y && p.point.z === newPoint.point.z);
-            if (!foundPoint) points.push(newPoint);
+            if (!points.find((p) => equalVoxelPoint(p.point, newPoint.point))) points.push(newPoint);
             // add vertext to current triange
             resultTri.push(newPoint.point);
           });
@@ -81,6 +90,8 @@ export function Voxel(props: VoxelProps) {
     }
   }
 
+
+  // decide which triangulation to use based on decider prop or asymptotic decider algorithm
   function getDecider() {
     if (props.decider !== undefined) {
       setDecidedTriangles(isoTriangleOptions[props.decider]);
@@ -97,7 +108,7 @@ export function Voxel(props: VoxelProps) {
 
     // go through each face and see if it has ambiguities
     faces.forEach((face) => {
-      const relevantPoints = isoPoints.filter((p) => p.edge.index === face.e1.index || p.edge.index === face.e2.index || p.edge.index === face.e3.index || p.edge.index === face.e4.index);
+      const relevantPoints = isoPoints.filter((p) => faceContainsPoint(face, p));
 
       if (relevantPoints.length === 4) {
         // calculate saddle value
@@ -110,25 +121,25 @@ export function Voxel(props: VoxelProps) {
 
         const iso1 = relevantPoints.find((iso) => iso.edge.index === face.e1.index);
         const iso2 = relevantPoints.find((iso) => iso.edge.index === face.e2.index);
-        const iso3 = relevantPoints.find((iso) => iso.edge.index === face.e3.index);
         const iso4 = relevantPoints.find((iso) => iso.edge.index === face.e4.index);
 
         const requiredPair: Array<IsoPoint> = []; // only need to check for one pair really
-        if (props.c > saddle) {
+        if (props.c > saddle && iso1 && iso4) {
           // connection between iso1 and iso4
           requiredPair.push(iso1);
           requiredPair.push(iso4);
-        } else {
+        } else if (iso1 && iso2) {
           // connection between iso1 and iso2
           requiredPair.push(iso1);
           requiredPair.push(iso2);
         }
+
         // filter options to only those that include the required pair
         remainingOptions = remainingOptions.filter((opt) => {
           let requiredPairFound = false;
           opt.forEach(tri => {
-            const foundPair1 = tri.find((p: VoxelPoint) => p.x === requiredPair[0].point.x && p.y === requiredPair[0].point.y && p.z === requiredPair[0].point.z);
-            const foundPair2 = tri.find((p: VoxelPoint) => p.x === requiredPair[1].point.x && p.y === requiredPair[1].point.y && p.z === requiredPair[1].point.z);
+            const foundPair1 = tri.find((p: VoxelPoint) => equalVoxelPoint(p, requiredPair[0].point));
+            const foundPair2 = tri.find((p: VoxelPoint) => equalVoxelPoint(p, requiredPair[1].point));
             if (foundPair1 && foundPair2) requiredPairFound = true;
           })
           return requiredPairFound;
